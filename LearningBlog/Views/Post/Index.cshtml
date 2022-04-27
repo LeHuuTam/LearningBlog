@@ -1,0 +1,15 @@
+﻿
+@model List<LearningBlog.Models.Post>
+
+<h1>Bài viết</h1>
+@{
+    foreach (var post in @Model)
+    {
+        <h3>@post.Title</h3>
+        <br />
+        <h6>Người đăng: @post.User_Name</h6>
+        <br />
+        <p>@post.Content</p>
+        <h6>Bình luận: @post.Comments[0].Content</h6>
+    }
+}

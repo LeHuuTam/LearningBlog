@@ -1,0 +1,53 @@
+﻿
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<!-- Page Header-->
+<header class="masthead" style="background-image: url('/assets/assets/img/contact-bg.jpg')">
+    <div class="container position-relative px-4 px-lg-5">
+        <div class="row gx-4 gx-lg-5 justify-content-center">
+            <div class="col-md-10 col-lg-8 col-xl-7">
+                <div class="page-heading">
+                    <h1>Tìm kiếm</h1>
+                    <span class="subheading">Have questions? I have answers.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+<!-- Main Content-->
+<main class="mb-4">
+    <div class="container px-4 px-lg-5">
+        <div class="row gx-4 gx-lg-5 justify-content-center">
+            <div class="col-md-10 col-lg-8 col-xl-7">
+                <p>Nhập nội cung tìm kiếm</p>
+                <div class="my-5">
+                    <!-- * * * * * * * * * * * * * * *-->
+                    <!-- * * SB Forms Contact Form * *-->
+                    <!-- * * * * * * * * * * * * * * *-->
+                    <!-- This form is pre-integrated with SB Forms.-->
+                    <!-- To make this form functional, sign up at-->
+                    <!-- https://startbootstrap.com/solution/contact-forms-->
+                    <!-- to get an API token!-->
+                    @using (Html.BeginForm("Search", "Search", FormMethod.Get, new { @class = "form-inline navbar-search" }))//"Search", "Search", FormMethod.Get, new { @class = "form-inline navbar-search" }))
+                    {
+                        <div class="form-floating">
+
+                            @Html.TextBox("SearchString", "", new { @class = "form-control", @style = "height: 12rem", @id = "message" })
+
+
+                            @*<textarea class="form-control" id="message" placeholder="Enter your message here..." style="height: 12rem" data-sb-validations="required"></textarea>
+                                <label for="message">Nội dung tìm kiếm</label>
+                                <div class="invalid-feedback" data-sb-feedback="message:required">A message is required.</div>*@
+                        </div>
+                        <br />
+
+                        <!-- Submit Button-->
+                        <button class="btn btn-primary text-uppercase disabled" id="submitButton" type="submit">Send</button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
