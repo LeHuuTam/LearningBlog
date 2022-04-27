@@ -5,13 +5,15 @@ using System.Threading.Tasks;
 
 namespace LearningBlog.Models
 {
-    public class Post
-    {
-        public int Id { get; set; }
-        public int User_Id { get; set; }
-        public string User_Name { get; set; }
+    public class PostVM
+    {      
+        public Guid UserId { get; set; }
+        public string UserName { get; set; }
         public string Title { get; set; }
-        public List<string> Content { get; set; }
-        public List<Comment> Comments { get; set; }
+        public List<PostContent> Contents { get; set; }
+    }
+    public class Post : PostVM
+    {
+        public Guid Id { get; set; }
     }
 }
