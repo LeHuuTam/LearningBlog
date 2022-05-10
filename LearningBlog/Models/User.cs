@@ -13,8 +13,8 @@ namespace LearningBlog.Models
         public string UserName { get; set; }
         public string Password { get; set; }
     }
-    public class User : UserVM
+    public class User: UserVM
     {
-        public Guid Id { get; set; }
+        public string Id { get; set; }
     }
 }

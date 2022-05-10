@@ -1,0 +1,38 @@
+﻿@{
+    ViewData["Title"] = "Login";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<header style="background-image: url('/assets/assets/img/home-bg.jpg')">
+    <div class="container position-relative px-4 px-lg-5">
+        <div class="row gx-4 gx-lg-5 justify-content-center">
+        </div>
+    </div>
+</header>
+<div class="login-cont" style="position:relative; top:60px; left:45px">
+    <div class="cont">
+        @using (Html.BeginForm("Login", "User", FormMethod.Post, new { @class = "form sign-in" }))
+        {
+            <h2>Welcome back!</h2>
+            <label>
+                <span>Tên đăng nhập</span>
+                @Html.TextBox("userName", "")
+            </label>
+            <label>
+                <span>Mật khẩu</span>
+                @Html.TextBox("password", "", new { @type = "password" })
+            </label>
+            <button type="submit" class="submit">Đăng nhập</button>
+        }
+        <div class="sub-cont">
+            <div class="img">
+                <div class="img__text m--up">
+                    <h2>Blog học tập</h2>
+                    <p>Đăng nhập để cùng nhau chia sẻ những kiến thức bổ ích!</p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+    
+

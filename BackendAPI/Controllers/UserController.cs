@@ -30,20 +30,6 @@ namespace BackendAPI.Controllers
                 using JsonDocument doc = JsonDocument.Parse(query);
                 var result = ElasticSearch.getDataAsync(doc, "user");
                 JObject jObject = JObject.Parse(result.Result.ToString());
-
-
-                //List<User> all_user = new List<User>();
-                //JArray userList = JArray.Parse(jObject["hits"]["hits"].ToString());
-                //foreach (var i in userList)
-                //{
-                //    all_user.Add(new User()
-                //    {
-                //        Id = Guid.Parse(i["_source"]["id"].ToString()),
-                //        FullName = i["_source"]["fullName"].ToString(),
-                //        UserName = i["_source"]["userName"].ToString(),
-                //        Password = i["_source"]["password"].ToString()
-                //    });
-                //}
                 return Ok(jObject["hits"]["hits"].ToString());
             }
             catch
@@ -65,19 +51,7 @@ namespace BackendAPI.Controllers
                 using JsonDocument doc = JsonDocument.Parse(query);
                 var result = ElasticSearch.getDataAsync(doc, "user");
                 JObject jObject = JObject.Parse(result.Result.ToString());
-                JArray userList = JArray.Parse(jObject["hits"]["hits"].ToString());
-                List<User> all_user = new List<User>();
-                foreach (var i in userList)
-                {
-                    all_user.Add(new User()
-                    {
-                        Id = Guid.Parse(i["_source"]["id"].ToString()),
-                        FullName = i["_source"]["fullName"].ToString(),
-                        UserName = i["_source"]["userName"].ToString(),
-                        Password = i["_source"]["password"].ToString()
-                    });
-                }
-                return Ok(all_user[0]);
+                return Ok(jObject["hits"]["hits"].ToString());
             }
             catch
             {

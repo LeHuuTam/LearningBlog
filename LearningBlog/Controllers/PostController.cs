@@ -1,5 +1,6 @@
 ﻿using LearningBlog.Models;
 using LearningBlog.Utilities;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -8,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -15,168 +17,112 @@ namespace LearningBlog.Controllers
 {
     public class PostController : Controller
     {
-        private static HttpClient client;
-        private static string IP = "https://34.195.187.172:9200";
-        private static string authen = "phunghx:elas@huutam";
-        public IActionResult Index()
-        {
-            return View();
-        }
-        public object Get(string path)
-        {
-            using (WebClient webCli = new WebClient())
-            {
-                return JsonConvert.DeserializeObject<object>(webCli.DownloadString(path));
-            }
-        }
+        [HttpGet]
         public IActionResult PostDetail(string id)
         {
             string path = "https://localhost:44381/api/post/" + id;
-            object post = Get(path);
-            List<Post> all_post = new List<Post>();
-            JArray postList = JArray.Parse(post.ToString());
-
-            foreach (var i in postList)
+            Post post = new Post();
+            using (var client = new HttpClient())
             {
-                //Lay userName theo userId cua tung bai post
-                string user_id = i["_source"]["user_id"].ToString();
-                string get_user_query = @"{
-                        ""query"" : {
-                          ""match"": {
-                               ""id"" : """ + user_id + @"""}
-                    }
-                    }";
-                using JsonDocument user_doc = JsonDocument.Parse(get_user_query);
-                var result2 = ElasticSearch.getDataAsync(user_doc, "user");
-                JObject jObject2 = JObject.Parse(result2.Result.ToString());
-                JArray userList = JArray.Parse(jObject2["hits"]["hits"].ToString());
-                string user_name = userList[0]["_source"]["fullName"].ToString();
-                //tao list subcontent cua tung bai post
-                JArray subContentList = JArray.Parse(i["_source"]["content"].ToString());
-                List<PostContent> postContents = new List<PostContent>();
-                foreach (var j in subContentList)
+                Task<HttpResponseMessage> res = client.GetAsync(path);
+                if (res.Result.StatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    postContents.Add(new PostContent()
+                    var result = res.Result.Content.ReadAsStringAsync().Result.ToString();
+                    JArray postArray = JArray.Parse(result);
+                    //lay useName
+                    string userName = "", userId = postArray[0]["_source"]["UserId"].ToString();
+                    string get_user_query = @"{
+                            ""query"" : {
+                              ""match"": {
+                                  ""_id"" : """ + userId + @"""}
+                       }
+                       }";
+                    using JsonDocument user_doc = JsonDocument.Parse(get_user_query);
+                    var resultUser = ElasticSearch.getDataAsync(user_doc, "user");
+                    JObject jObjectUser = JObject.Parse(resultUser.Result.ToString());
+                    JArray userList = JArray.Parse(jObjectUser["hits"]["hits"].ToString());
+                    userName = userList[0]["_source"]["FullName"].ToString();
+
+                    post = new Post()
                     {
-                        SubTitle = j["subtitle"].ToString(),
-                        SubContent = j["subcontent"].ToString()
-                    });
+                        Id = postArray[0]["_id"].ToString(),
+                        UserId = userId,
+                        UserName = userName,
+                        Title = postArray[0]["_source"]["Title"].ToString(),
+                        Content = System.Text.Json.JsonSerializer.Deserialize<List<PostContent>>(postArray[0]["_source"]["Content"].ToString())
+                    };
                 }
-                //them bai post vao list voi userName va list subcontent vua lay duoc o tren
-                all_post.Add(new Post()
-                {
-                    Id = Guid.Parse(i["_source"]["id"].ToString()),
-                    UserId = Guid.Parse(i["_source"]["user_id"].ToString()),
-                    UserName = user_name,
-                    Title = i["_source"]["title"].ToString(),
-                    Contents = postContents
-                });
+                return View(post);
+            }
+        }
+        [HttpGet]
+        public IActionResult Post()
+        {
+            //lay thong tin dang nhap
+            var session = HttpContext.Session;          // Lấy ISession
+            string key = "infor_access";
+            string json = session.GetString(key);
+            if (json == null)
+            {
+                return RedirectToAction("Login", "User");
+            }
+            return View();
+        }
+        [HttpPost]
+        public IActionResult Post(string title, string content)
+        {
+
+            var session = HttpContext.Session;          // Lấy ISession
+            string key = "infor_access";
+            string json = session.GetString(key);
+            string userId, userName;
+            if (json == null)
+            {
+                return RedirectToAction("Login", "User");
+            }
+            else
+            {
+                User loginUser = JsonConvert.DeserializeObject<User>(json);
+                userId = loginUser.Id.ToString();
+                //userName = loginUser.FullName.ToString();
             }
 
-
-
-
-
-
-            //string data = @"{
-            //    ""query"" : {
-            //    ""match"": {
-            //        ""id"":" + Id.ToString() +
-            //    @"}
-            //    }
-            //    }";
-
-
-            //string userData = @"{
-            //    ""query"" : {
-            //    ""match_all"": {}
-            //    }
-            //    }";
-
-
-            //using JsonDocument doc = JsonDocument.Parse(data);
-            //using JsonDocument userDoc = JsonDocument.Parse(userData);
-
-
-
-            //var result = ElasticSearch.getDataAsync(userDoc, "user");
-            //JObject jObject = JObject.Parse(result.Result.ToString());
-
-
-            //List<User> users = new List<User>();
-            //JArray userList = JArray.Parse(jObject["hits"]["hits"].ToString());
-            //foreach (var i in userList)
-            //{
-            //    users.Add(new User()
-            //    {
-            //        Id = Int32.Parse(i["_source"]["id"].ToString()),
-            //        Name = i["_source"]["name"].ToString()
-            //    });
-            //}
-
-
-
-            //result = ElasticSearch.getDataAsync(doc, "comment");
-            //jObject = JObject.Parse(result.Result.ToString());
-
-
-            //List<Comment> comments = new List<Comment>();
-            //JArray commentList = JArray.Parse(jObject["hits"]["hits"].ToString());
-            //foreach (var i in commentList)
-            //{
-            //    comments.Add(new Comment()
-            //    {
-            //        Id = Int32.Parse(i["_source"]["id"].ToString()),
-            //        Post_Id = Int32.Parse(i["_source"]["post_id"].ToString()),
-            //        Content = i["_source"]["content"].ToString()
-            //    });
-            //}
-
-
-            //result = ElasticSearch.getDataAsync(doc, "post");
-            //jObject = JObject.Parse(result.Result.ToString());
-
-
-            //List<Post> posts = new List<Post>();
-            //JArray postList = JArray.Parse(jObject["hits"]["hits"].ToString());
-            //int uid = 0, poId = 0; string name = "";
-            //List<Comment> cmts = new List<Comment>();
-            //List<string> subContents = new List<string>();
-            //foreach (var i in postList)
-            //{
-            //    uid = Int32.Parse(i["_source"]["user_id"].ToString());
-            //    foreach (var us in users)
-            //    {
-            //        if (us.Id == uid)
-            //        {
-            //            name = us.Name;
-            //        }
-            //    }
-            //    poId = Int32.Parse(i["_source"]["id"].ToString());
-            //    foreach (var cmt in comments)
-            //    {
-            //        if (cmt.Post_Id == poId)
-            //        {
-            //            cmts.Add(cmt);
-            //        }
-            //    }
-
-            //    JArray subCont = JArray.Parse(i["_source"]["content"].ToString());
-            //    foreach (var j in subCont)
-            //    {
-            //        subContents.Add(j["subcontent"].ToString());
-            //    }
-            //    posts.Add(new Post()
-            //    {
-            //        User_Id = Int32.Parse(i["_source"]["user_id"].ToString()),
-            //        User_Name = name,
-            //        Title = i["_source"]["title"].ToString(),
-            //        //Content = i["_source"]["content"].ToString(),
-            //        Content = subContents,
-            //        Comments = cmts
-            //    });
-            //}
-            return View(all_post[0]);
+            try
+            {
+                Post post = new Post() 
+                {
+                    UserId = userId,
+                    Title = title,
+                    Content = new List<PostContent>()
+                    {
+                        new PostContent()
+                        {
+                            Type = "text",
+                            SubContent = content
+                        }
+                    }
+                };
+                string url = "https://localhost:44381/api/Post";
+                using (var client = new HttpClient())
+                {
+                    string postJson = System.Text.Json.JsonSerializer.Serialize(post);
+                    var httpContent = new StringContent(postJson, Encoding.UTF8, "application/json");
+                    Task<HttpResponseMessage> res = client.PostAsync(url, httpContent);
+                    if (res.Result.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        return View("Post");
+                    }
+                    else
+                    {
+                        return BadRequest();
+                    }
+                }
+            }
+            catch
+            {
+                return BadRequest();
+            }
         }
+
     }
 }

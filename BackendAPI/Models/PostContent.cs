@@ -7,8 +7,8 @@ namespace BackendAPI.Models
 {
     public class PostContent
     {
-        public Guid Id { get; set; }
+        public string Type { get; set; } //text or img
         public string SubTitle { get; set; }
-        public string SubContent { get; set; }
+        public string SubContent { get; set; } // text or link to img
     }
 }

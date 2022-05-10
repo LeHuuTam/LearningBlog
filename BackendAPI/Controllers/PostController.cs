@@ -41,7 +41,7 @@ namespace BackendAPI.Controllers
             string query = @"{
                 ""query"" : {
                 ""match"": {
-                    ""id"" : """ + id + @"""}
+                    ""_id"" : """ + id + @"""}
                 }
                 }";
             try
@@ -49,13 +49,7 @@ namespace BackendAPI.Controllers
                 using JsonDocument doc = JsonDocument.Parse(query);
                 var result = ElasticSearch.getDataAsync(doc, "post");
                 JObject jObject = JObject.Parse(result.Result.ToString());
-
-
-                List<Post> all_post = new List<Post>();
-                JArray postList = JArray.Parse(jObject["hits"]["hits"].ToString());
                 return Ok(jObject["hits"]["hits"].ToString());
-                
-               // return Ok(all_post[0]);
             }
             catch
             {
@@ -67,9 +61,10 @@ namespace BackendAPI.Controllers
         {
             string query = @"{
                 ""query"" : {
-                ""match"": {
-                    ""title"" : """ + searchText +
-                @"""}
+                ""multi_match"": {
+                    ""query"":"""+ searchText + @""", 
+                     ""fields"": [""Title"", ""Content.SubContent""]
+                }
                 }
                 }";
             try
@@ -85,49 +80,64 @@ namespace BackendAPI.Controllers
             }
         }
         [HttpPost]
-        public IActionResult Create(string userId, Post postVM)
+        public IActionResult Create(PostVM postVM)
         {
             //Lay ten nguoi dang bai
-            string query = @"{
-                ""query"" : {
-                ""match"": {
-                    ""id"" : """ + userId + @"""}
-                }
-                }";
+            //string query = @"{
+            //    ""query"" : {
+            //    ""match"": {
+            //        ""_id"" : """ + userId + @"""}
+            //    }
+            //    }";
             try
             {
-                using JsonDocument doc_user = JsonDocument.Parse(query);
-                var result_user = ElasticSearch.getDataAsync(doc_user, "user");
-                JObject jObject = JObject.Parse(result_user.Result.ToString());
-                List<User> all_user = new List<User>();
-                JArray userList = JArray.Parse(jObject["hits"]["hits"].ToString());
-                string userName = userList[0]["_source"]["userName"].ToString();
-                string id = Guid.NewGuid().ToString();
-
-                string postQuery = @"{ ""id"" : """ + id + @""",
-                                ""user_id"" : """ + userId + @""",
-                                ""title"" : """ + postVM.Title + @""",
-                                ""content"" : [";
-
-                int j;
-                for (j = 0; j < postVM.Contents.Count - 1; j++)
-                {
-                    postQuery += @"{
-                             ""subtitle"" : """ + postVM.Contents[j].SubTitle + @""",
-                             ""subcontent"" : """ + postVM.Contents[j].SubContent + @"""
-                     },";
-                }
-                postQuery += @"{
-                             ""subtitle"" : """ + postVM.Contents[j].SubTitle + @""",
-                             ""subcontent"" : """ + postVM.Contents[j].SubContent + @"""
-                     }]}";
+                //using JsonDocument doc_user = JsonDocument.Parse(query);
+                //var result_user = ElasticSearch.getDataAsync(doc_user, "user");
+                //JObject jObject = JObject.Parse(result_user.Result.ToString());
+                //List<User> all_user = new List<User>();
+                //JArray userList = JArray.Parse(jObject["hits"]["hits"].ToString());
+                //string userName = userList[0]["_source"]["userName"].ToString();//
+                //tao bai post moi
+                var json = JsonSerializer.Serialize(postVM);
+                using JsonDocument doc = JsonDocument.Parse(json);
 
 
-                using JsonDocument doc_post = JsonDocument.Parse(postQuery);
-                var result_post = ElasticSearch.postDataAsync(doc_post, "post");
-                return Ok(new { 
-                    UserPost = userName
-                });
+
+
+
+                //string postQuery = @"{ ""id"" : """ + id + @""",
+                //                ""user_id"" : """ + userId + @""",
+                //                ""title"" : """ + title + @""",
+                //                ""content"" : [";
+
+                //int j;
+
+                //postQuery += @"{
+                //            ""subtitle"" : """ + "" + @""",
+                //            ""subcontent"" : """ + content + @"""
+                //    }]}";
+
+                //string postQuery = @"{ ""id"" : """ + id + @""",
+                //                ""user_id"" : """ + userId + @""",
+                //                ""title"" : """ + postVM.Title + @""",
+                //                ""content"" : [";
+
+                //int j;
+                //for (j = 0; j < postVM.Contents.Count - 1; j++)
+                //{
+                //    postQuery += @"{
+                //             ""subtitle"" : """ + postVM.Contents[j].SubTitle + @""",
+                //             ""subcontent"" : """ + postVM.Contents[j].SubContent + @"""
+                //     },";
+                //}
+                //postQuery += @"{
+                //             ""subtitle"" : """ + postVM.Contents[j].SubTitle + @""",
+                //             ""subcontent"" : """ + postVM.Contents[j].SubContent + @"""
+                //     }]}";
+
+
+                var result = ElasticSearch.postDataAsync(doc, "post");
+                return Ok("success");
             }
             catch
             {
@@ -194,7 +204,7 @@ namespace BackendAPI.Controllers
 
 
                 var resultDelete = ElasticSearch.deleteDataAsync(_id, "post");
-                return Ok(resultDelete.Result.ToString());
+                return Ok("success");
             }
             catch
             {

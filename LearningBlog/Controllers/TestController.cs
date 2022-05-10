@@ -1,12 +1,13 @@
 ﻿using LearningBlog.Models;
 using LearningBlog.Utilities;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -17,75 +18,83 @@ namespace LearningBlog.Controllers
         public IActionResult Index()
         {
             string path = "https://localhost:44381/api/user";
-            object user = Get(path);
-            List<User> all_user = new List<User>();
-            JArray userList = JArray.Parse(user.ToString());
-            foreach (var i in userList)
+            using (var client = new HttpClient())
             {
-                all_user.Add(new User()
+                Task<HttpResponseMessage> res = client.GetAsync(path);
+                if (res.Result.StatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    Id = Guid.Parse(i["_source"]["id"].ToString()),
-                    FullName = i["_source"]["fullName"].ToString(),
-                    UserName = i["_source"]["userName"].ToString(),
-                    Password = i["_source"]["password"].ToString()
-                });
+                    List<User> all_user = new List<User>();
+                    JArray userList = JArray.Parse(res.Result.Content.ReadAsStringAsync().Result);
+                    foreach (var i in userList)
+                    {
+                        all_user.Add(new User()
+                        {
+                            FullName = i["_source"]["FullName"].ToString(),
+                            UserName = i["_source"]["UserName"].ToString(),
+                            Password = i["_source"]["Password"].ToString()
+                        });
+                    }
+                }
             }
-
-            
-            return View(all_user);
+            return View();
         }
         public IActionResult Home()
         {
-            string path = "https://localhost:44381/api/post";
-            object post = Get(path);
-            List<Post> all_post = new List<Post>();
-            JArray postList = JArray.Parse(post.ToString());
-            foreach (var i in postList)
+            //lay thong tin dang nhap
+            var session = HttpContext.Session;          // Lấy ISession
+            string key = "infor_access";
+            string json = session.GetString(key);
+            User loginUser;
+            if (json != null)
             {
-                //Lay userName theo userId cua tung bai post
-                string user_id = i["_source"]["user_id"].ToString();
-                string get_user_query = @"{
+                loginUser  = JsonSerializer.Deserialize<User>(json);
+                ViewBag.User = loginUser.FullName;
+            }
+            else
+            {
+                loginUser = null;
+                ViewBag.User = "";
+            }
+            //Lay all post
+            List<Post> all_post = new List<Post>();
+            string path = "https://localhost:44381/api/post";
+            using (var client = new HttpClient())
+            {
+                Task<HttpResponseMessage> res = client.GetAsync(path);
+                if (res.Result.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    var hhh = res.Result.Content.ReadAsStringAsync().Result.ToString();
+                    //JObject postListObject = JObject.Parse(hhh);
+                    JArray postListArray = JArray.Parse(hhh);
+                    foreach (var i in postListArray)
+                    {
+                        //Lay username
+                        string userName = "", userId = i["_source"]["UserId"].ToString();
+                        string get_user_query = @"{
                         ""query"" : {
                           ""match"": {
-                               ""id"" : """ + user_id + @"""}
+                               ""_id"" : """ + userId + @"""}
+                            }
+                            }";
+                        using JsonDocument user_doc = JsonDocument.Parse(get_user_query);
+                        var resultGetUser = ElasticSearch.getDataAsync(user_doc, "user");
+                        JObject userListObj = JObject.Parse(resultGetUser.Result.ToString());
+                        JArray userListArr = JArray.Parse(userListObj["hits"]["hits"].ToString());
+                        userName = userListArr[0]["_source"]["FullName"].ToString();
+
+
+                        all_post.Add(new Post()
+                        {
+                            Id = i["_id"].ToString(),
+                            Title = i["_source"]["Title"].ToString(),
+                            Content = JsonSerializer.Deserialize<List<PostContent>>(i["_source"]["Content"].ToString()),
+                            UserId = userId,
+                            UserName = userName
+                        }) ;
                     }
-                    }";
-                using JsonDocument user_doc = JsonDocument.Parse(get_user_query);
-                var result2 = ElasticSearch.getDataAsync(user_doc, "user");
-                JObject jObject2 = JObject.Parse(result2.Result.ToString());
-                JArray userList = JArray.Parse(jObject2["hits"]["hits"].ToString());
-                string user_name = userList[0]["_source"]["fullName"].ToString();
-                //tao list subcontent cua tung bai post
-                JArray subContentList = JArray.Parse(i["_source"]["content"].ToString());
-                List<PostContent> postContents = new List<PostContent>();
-                foreach (var j in subContentList)
-                {
-                    postContents.Add(new PostContent()
-                    {
-                        SubTitle = j["subtitle"].ToString(),
-                        SubContent = j["subcontent"].ToString()
-                    });
                 }
-                //them bai post vao list voi userName va list subcontent vua lay duoc o tren
-                all_post.Add(new Post()
-                {
-                    Id = Guid.Parse(i["_source"]["id"].ToString()),
-                    UserId = Guid.Parse(i["_source"]["user_id"].ToString()),
-                    UserName = user_name,
-                    Title = i["_source"]["title"].ToString(),
-                    Contents = postContents
-                });
-            }
-
-
+            }            
             return View(all_post);
-        }
-        public object Get(string path)
-        {
-            using (WebClient webCli = new WebClient())
-            {
-                return JsonConvert.DeserializeObject<object>(webCli.DownloadString(path));
-            }
         }
     }
 }

@@ -1,27 +1,26 @@
-﻿
-@{
-    ViewData["Title"] = "Index";
+﻿@{
+    ViewData["Title"] = "PostDetail";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+
 <!-- Page Header-->
 <header class="masthead" style="background-image: url('/assets/assets/img/contact-bg.jpg')">
     <div class="container position-relative px-4 px-lg-5">
         <div class="row gx-4 gx-lg-5 justify-content-center">
             <div class="col-md-10 col-lg-8 col-xl-7">
                 <div class="page-heading">
-                    <h1>Tìm kiếm</h1>
+                    <h1>Viết bài</h1>
                     <span class="subheading">Have questions? I have answers.</span>
                 </div>
             </div>
         </div>
     </div>
 </header>
-<!-- Main Content-->
 <main class="mb-4">
     <div class="container px-4 px-lg-5">
         <div class="row gx-4 gx-lg-5 justify-content-center">
             <div class="col-md-10 col-lg-8 col-xl-7">
-                <p style="padding-bottom:0px; margin-bottom:0px">Nhập nội dung tìm kiếm</p>
+                <p style="padding-bottom:0px; margin-bottom:0px"></p>
                 <div class="my-5" style="padding-top:0px">
                     <!-- * * * * * * * * * * * * * * *-->
                     <!-- * * SB Forms Contact Form * *-->
@@ -30,15 +29,21 @@
                     <!-- To make this form functional, sign up at-->
                     <!-- https://startbootstrap.com/solution/contact-forms-->
                     <!-- to get an API token!-->
-                    @using (Html.BeginForm("Search", "Search", FormMethod.Get, new { @class = "form-inline navbar-search" }))//"Search", "Search", FormMethod.Get, new { @class = "form-inline navbar-search" }))
+                    @using (Html.BeginForm("Post", "Post", FormMethod.Post, new { @class = "form-inline navbar-search" }))
                     {
                         <div class="form-floating">
-                            @Html.TextBox("SearchText", "", new { @class = "form-control", @id = "message" })
+                            @Html.TextBox("title", "", new { @class = "form-control", @style = "height:4rem; padding-top:0px", @id = "title" })
+                            <label for="title">Tiêu đề</label>
+                            <div class="invalid-feedback" data-sb-feedback="name:required">Bạn chưa nhập tiêu đề bài viết</div>
+                        </div>
+                        <div class="form-floating">
+                            @Html.TextArea("content", "", new { @class = "form-control", @style = "height:4rem; padding-top:0px", @id = "content" })
+                            <label for="content">Nội dung</label>
+                            <div class="invalid-feedback" data-sb-feedback="name:required">Bạn chưa nhập nội bài viết</div>
                         </div>
                         <br />
-
                         <!-- Submit Button-->
-                        <button class="btn btn-primary text-uppercase" id="submitButton" type="submit">Tìm</button>
+                        <button class="btn btn-primary text-uppercase" id="submitButton" type="submit">Đăng bài</button>
                     }
                 </div>
             </div>
