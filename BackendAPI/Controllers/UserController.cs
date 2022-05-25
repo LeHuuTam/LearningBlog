@@ -43,7 +43,7 @@ namespace BackendAPI.Controllers
             string query = @"{
                 ""query"" : {
                 ""match"": {
-                    ""id"" : """ + id + @"""}
+                    ""_id"" : """ + id + @"""}
                 }
                 }";
             try
@@ -57,6 +57,51 @@ namespace BackendAPI.Controllers
             {
                 return BadRequest();
             }
+        }
+        [HttpGet("postid/{postId}")]
+        public IActionResult GetUserNameByPostId(string postId)
+        {
+            string userId;
+            //lay post
+            string postQuery = @"{
+                ""query"" : {
+                ""match"": {
+                    ""_id"" : """ + postId + @"""}
+                }
+                }";
+            try
+            {
+                using JsonDocument doc1 = JsonDocument.Parse(postQuery);
+                var result1 = ElasticSearch.getDataAsync(doc1, "post");
+                JObject jObject1 = JObject.Parse(result1.Result.ToString());
+                JArray arr = JArray.Parse(jObject1["hits"]["hits"].ToString());
+                userId = arr[0]["_source"]["UserId"].ToString();
+            }
+            catch
+            {
+                userId = "";
+            }
+
+            //lay user
+            string userQuery = @"{
+                ""query"" : {
+                ""match"": {
+                    ""_id"" : """ + userId + @"""}
+                }
+                }";
+            //try
+            //{
+                using JsonDocument doc = JsonDocument.Parse(userQuery);
+                var result = ElasticSearch.getDataAsync(doc, "user");
+                JObject jObject = JObject.Parse(result.Result.ToString());
+            JArray arr2 = JArray.Parse(jObject["hits"]["hits"].ToString());
+            string fn = arr2[0]["_source"]["FullName"].ToString();
+            return Ok(fn);
+            //}
+            //catch
+            //{
+            //    return BadRequest();
+            //}
         }
         [HttpPost]
         public IActionResult Create(User userVM)

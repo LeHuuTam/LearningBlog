@@ -2,37 +2,158 @@
     ViewData["Title"] = "Login";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-<header style="background-image: url('/assets/assets/img/home-bg.jpg')">
-    <div class="container position-relative px-4 px-lg-5">
-        <div class="row gx-4 gx-lg-5 justify-content-center">
-        </div>
-    </div>
+
+<link href="~/assets/comment/css/style.css" rel="stylesheet" />
+<link href="~/assets/comment/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<link href="~/assets/comment/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+<link href="~/assets/comment/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
+<link href="~/assets/comment/vendor/quill/quill.snow.css" rel="stylesheet">
+<link href="~/assets/comment/vendor/quill/quill.bubble.css" rel="stylesheet">
+<link href="~/assets/comment/vendor/remixicon/remixicon.css" rel="stylesheet">
+<link href="~/assets/comment/vendor/simple-datatables/style.css" rel="stylesheet">
+<!-- Page Header-->
+<header class="masthead" style="padding-top: 0px; padding-bottom:150px; background: url('/assets/assets/img/home-bg.jpg') no-repeat top center/cover ">
 </header>
-<div class="login-cont" style="position:relative; top:60px; left:45px">
-    <div class="cont">
-        @using (Html.BeginForm("Login", "User", FormMethod.Post, new { @class = "form sign-in" }))
-        {
-            <h2>Welcome back!</h2>
-            <label>
-                <span>Tên đăng nhập</span>
-                @Html.TextBox("userName", "")
-            </label>
-            <label>
-                <span>Mật khẩu</span>
-                @Html.TextBox("password", "", new { @type = "password" })
-            </label>
-            <button type="submit" class="submit">Đăng nhập</button>
-        }
-        <div class="sub-cont">
-            <div class="img">
-                <div class="img__text m--up">
-                    <h2>Blog học tập</h2>
-                    <p>Đăng nhập để cùng nhau chia sẻ những kiến thức bổ ích!</p>
+<!-- Main Content-->
+<main id="main" class="main" style="margin-left:150px;margin-right:150px">
+    <section class="section profile">
+        <div class="row">
+            <div class="col-xl-4">
+
+                <div class="card">
+                    <div class="card-body profile-card pt-4 d-flex flex-column align-items-center">
+                        <h2>Blog học tập</h2>
+                        <h6>Đăng nhập để cùng nhau chia sẻ những kiến thức thú vị</h6>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="col-xl-8">
+
+                <div class="card">
+                    <div class="card-body pt-3">
+                        <!-- Bordered Tabs -->
+                        <ul class="nav nav-tabs nav-tabs-bordered">
+                            <li class="nav-item">
+                                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#profile-edit">Đănng nhập</button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#profile-change-password">Đăng ký</button>
+                            </li>
+
+                        </ul>
+                        <div class="tab-content pt-2">
+                            <div class="tab-pane fade profile-edit pt-3 active show" id="profile-edit">
+                                <!-- Form đăng nhập-->
+                                @using (Html.BeginForm("Login", "User", FormMethod.Post))
+                                {
+                                    <div class="row mb-3">
+                                        <label for="userName" class="col-md-4 col-lg-3 col-form-label">Tên đăng nhập</label>
+                                        <div class="col-md-8 col-lg-9">
+                                            @Html.TextBox("userName", "", new { @name = "userName", @type = "text", @class = "form-control", @id = "userName" })
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <label for="Password" class="col-md-4 col-lg-3 col-form-label">Mật khẩu</label>
+                                        <div class="col-md-8 col-lg-9">
+                                            @Html.TextBox("password", "", new { @name = "password", @type = "password", @class = "form-control", @id = "Password" })
+                                        </div>
+                                    </div>
+                                    <div class="text-center">
+                                        <button type="submit" class="btn btn-primary">Đăng nhập</button>
+                                    </div>
+                                }
+                                <!-- end Form -->
+
+                            </div>
+
+                            <div class="tab-pane fade pt-3" id="profile-change-password">
+                                <!-- Form đăng ký-->
+                                @using (Html.BeginForm("Register", "User", FormMethod.Post))
+                                {
+                                    <div class="row mb-3">
+                                        <label for="fullName" class="col-md-4 col-lg-3 col-form-label">Họ tên</label>
+                                        <div class="col-md-8 col-lg-9">
+                                            @Html.TextBox("fullName", "", new { @name = "userName", @type = "text", @class = "form-control", @id = "fullName" })
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <label for="Email" class="col-md-4 col-lg-3 col-form-label">Email</label>
+                                        <div class="col-md-8 col-lg-9">
+                                            @Html.TextBox("email", "", new { @name = "email", @type = "email", @class = "form-control", @id = "Email" })
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <label for="userName" class="col-md-4 col-lg-3 col-form-label">Tên đăng nhập</label>
+                                        <div class="col-md-8 col-lg-9">
+                                            @Html.TextBox("userName", "", new { @name = "userName", @type = "text", @class = "form-control", @id = "userName" })
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <label for="Password" class="col-md-4 col-lg-3 col-form-label">Mật khẩu</label>
+                                        <div class="col-md-8 col-lg-9">
+                                            @Html.TextBox("password", "", new { @name = "password", @type = "password", @class = "form-control", @id = "Password" })
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <label for="renewPassword" class="col-md-4 col-lg-3 col-form-label">Nhập lại mật khẩu</label>
+                                        <div class="col-md-8 col-lg-9">
+                                            @Html.TextBox("re-password", "", new { @name = "renewpassword", @type = "password", @class = "form-control", @id = "renewpassword" })
+                                        </div>
+                                    </div>
+                                    <div class="text-center">
+                                        <button type="submit" class="btn btn-primary">Đăng ký</button>
+                                    </div>
+                                }
+                                <!-- End Form -->
+
+                            </div>
+
+                        </div><!-- End Bordered Tabs -->
+
+                    </div>
                 </div>
 
             </div>
         </div>
-    </div>
-</div>
-    
+    </section>
+</main>
+
+
+
+@*<header style="background-image: url('/assets/assets/img/home-bg.jpg')">
+        <div class="container position-relative px-4 px-lg-5">
+            <div class="row gx-4 gx-lg-5 justify-content-center">
+            </div>
+        </div>
+    </header>
+    <div class="login-cont" style="position:relative; top:60px; left:45px">
+        <div class="cont">
+            @using (Html.BeginForm("Login", "User", FormMethod.Post, new { @class = "form sign-in" }))
+            {
+                <h2>Welcome back!</h2>
+                <label>
+                    <span>Tên đăng nhập</span>
+                    @Html.TextBox("userName", "")
+                </label>
+                <label>
+                    <span>Mật khẩu</span>
+                    @Html.TextBox("password", "", new { @type = "password" })
+                </label>
+                <button type="submit" class="submit">Đăng nhập</button>
+            }
+            <div class="sub-cont">
+                <div class="img">
+                    <div class="img__text m--up">
+                        <h2>Blog học tập</h2>
+                        <p>Đăng nhập để cùng nhau chia sẻ những kiến thức bổ ích!</p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>*@
+
 

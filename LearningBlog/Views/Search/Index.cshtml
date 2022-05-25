@@ -30,7 +30,7 @@
                     <!-- To make this form functional, sign up at-->
                     <!-- https://startbootstrap.com/solution/contact-forms-->
                     <!-- to get an API token!-->
-                    @using (Html.BeginForm("Search", "Search", FormMethod.Get, new { @class = "form-inline navbar-search" }))//"Search", "Search", FormMethod.Get, new { @class = "form-inline navbar-search" }))
+                    @using (Html.BeginForm("Search", "Search", FormMethod.Post, new { @class = "form-inline navbar-search" }))
                     {
                         <div class="form-floating">
                             @Html.TextBox("SearchText", "", new { @class = "form-control", @id = "message" })

@@ -29,7 +29,7 @@ namespace LearningBlog.Controllers
                 {
                     var result = res.Result.Content.ReadAsStringAsync().Result.ToString();
                     JArray postArray = JArray.Parse(result);
-                    //lay useName
+                    //lay useName cua post
                     string userName = "", userId = postArray[0]["_source"]["UserId"].ToString();
                     string get_user_query = @"{
                             ""query"" : {
@@ -41,7 +41,50 @@ namespace LearningBlog.Controllers
                     var resultUser = ElasticSearch.getDataAsync(user_doc, "user");
                     JObject jObjectUser = JObject.Parse(resultUser.Result.ToString());
                     JArray userList = JArray.Parse(jObjectUser["hits"]["hits"].ToString());
-                    userName = userList[0]["_source"]["FullName"].ToString();
+
+                    if (userList.Count == 0)
+                        userName = "";
+                    else
+                        userName = userList[0]["_source"]["FullName"].ToString();
+                    //Lay comments
+                    string get_comment_query = @"{
+                            ""query"" : {
+                              ""match"": {
+                                  ""PostId"" : """ + id + @"""}
+                       }
+                       }";
+                    using JsonDocument cmt_doc = JsonDocument.Parse(get_comment_query);
+                    var resultCmt = ElasticSearch.getDataAsync(cmt_doc, "comment");
+                    JObject jObjectCmt = JObject.Parse(resultCmt.Result.ToString());
+                    JArray CmtList = JArray.Parse(jObjectCmt["hits"]["hits"].ToString());
+                    // lay user cua tung cmt
+                    List<CommentVM> CmtVM = new List<CommentVM>();
+                    foreach (var i in CmtList)
+                    {
+                        string userNameCmt = "", userIdCmt = i["_source"]["UserId"].ToString();
+                        string get_user_query_cmt = @"{
+                            ""query"" : {
+                              ""match"": {
+                                  ""_id"" : """ + userIdCmt + @"""}
+                       }
+                       }";
+                        using JsonDocument user_doc_cmt = JsonDocument.Parse(get_user_query_cmt);
+                        var resultUserCmt = ElasticSearch.getDataAsync(user_doc_cmt, "user");
+                        JObject jObjectUserCmt = JObject.Parse(resultUserCmt.Result.ToString());
+                        JArray userListCmt = JArray.Parse(jObjectUserCmt["hits"]["hits"].ToString());
+                        if (userListCmt.Count == 0)
+                            userNameCmt = "";
+                        else
+                            userNameCmt = userListCmt[0]["_source"]["FullName"].ToString();
+
+                        CmtVM.Add(new CommentVM()
+                        {
+                            UserName = userNameCmt,
+                            Content = i["_source"]["Content"].ToString()
+                        });
+                    }
+
+
 
                     post = new Post()
                     {
@@ -49,7 +92,8 @@ namespace LearningBlog.Controllers
                         UserId = userId,
                         UserName = userName,
                         Title = postArray[0]["_source"]["Title"].ToString(),
-                        Content = System.Text.Json.JsonSerializer.Deserialize<List<PostContent>>(postArray[0]["_source"]["Content"].ToString())
+                        Content = System.Text.Json.JsonSerializer.Deserialize<List<PostContent>>(postArray[0]["_source"]["Content"].ToString()),
+                        Comment = CmtVM
                     };
                 }
                 return View(post);
@@ -89,7 +133,7 @@ namespace LearningBlog.Controllers
 
             try
             {
-                Post post = new Post() 
+                Post post = new Post()
                 {
                     UserId = userId,
                     Title = title,
@@ -123,6 +167,62 @@ namespace LearningBlog.Controllers
                 return BadRequest();
             }
         }
+        [HttpGet]
+        public IActionResult GetByUser()
+        {
+            //lay thong tin dang nhap
+            var session = HttpContext.Session;          // Lấy ISession
+            string key = "infor_access";
+            string json = session.GetString(key);
+            string userId = "";
+            if (json == null)
+            {
+                return RedirectToAction("Login", "User");
+            }
+            else
+            {
+                User loginUser = JsonConvert.DeserializeObject<User>(json);
+                userId = loginUser.Id.ToString();
+                //userName = loginUser.FullName.ToString();
+            }
+            List<Post> listPost = new List<Post>();
+            string path = "https://localhost:44381/api/post/user/" + userId;
+            using (var client = new HttpClient())
+            {
+                Task<HttpResponseMessage> res = client.GetAsync(path);
+                if (res.Result.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    var hhh = res.Result.Content.ReadAsStringAsync().Result.ToString();
+                    JArray postListArray = JArray.Parse(hhh);
+                    foreach (var i in postListArray)
+                    {
+                        string userName = "";
+                        string userPath = "https://localhost:44381/api/user/postId/" + i["_id"].ToString();
+                        using (var client2 = new HttpClient())
+                        {
+                            Task<HttpResponseMessage> res2 = client2.GetAsync(userPath);
+                            userName = res2.Result.Content.ReadAsStringAsync().Result.ToString();
+                        }
 
+                        listPost.Add(new Post()
+                        {
+                            Id = i["_id"].ToString(),
+                            Title = i["_source"]["Title"].ToString(),
+                            Content = System.Text.Json.JsonSerializer.Deserialize<List<PostContent>>(i["_source"]["Content"].ToString()),
+                            UserId = userId,
+                            UserName = userName,
+                            Date = i["_source"]["Date"].ToString()
+                        });
+                    }
+                }
+            }
+            return View(listPost);
+        }
+
+        [HttpDelete]
+        public IActionResult Delete(string id)
+        {
+            return View();
+        }
     }
 }

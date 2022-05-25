@@ -44,8 +44,12 @@ namespace LearningBlog.Controllers
                 using JsonDocument user_doc = JsonDocument.Parse(get_user_query);
                 var result2 = ElasticSearch.getDataAsync(user_doc, "user");
                 JObject jObject2 = JObject.Parse(result2.Result.ToString());
-                JArray userList = JArray.Parse(jObject2["hits"]["hits"].ToString());
-                string user_name = userList[0]["_source"]["FullName"].ToString();
+                JArray userListArr = JArray.Parse(jObject2["hits"]["hits"].ToString());
+                string userName = "";
+                if (userListArr.Count == 0)
+                    userName = "";
+                else
+                    userName = userListArr[0]["_source"]["FullName"].ToString();
                 //tao list subcontent cua tung bai post
                 JArray subContentList = JArray.Parse(i["_source"]["Content"].ToString());
                 List<PostContent> postContents = new List<PostContent>();
@@ -60,8 +64,9 @@ namespace LearningBlog.Controllers
                 //them bai post vao list voi userName va list subcontent vua lay duoc o tren
                 all_post.Add(new Post()
                 {
+                    Id = i["_id"].ToString(),
                     UserId = i["_source"]["UserId"].ToString(),
-                    UserName = user_name,
+                    UserName = userName,
                     Title = i["_source"]["Title"].ToString(),
                     Content = System.Text.Json.JsonSerializer.Deserialize<List<PostContent>>(i["_source"]["Content"].ToString())
                 });

@@ -21,7 +21,13 @@ namespace BackendAPI.Controllers
             string query = @"{
                 ""query"" : {
                 ""match_all"": {}
-                }
+                },
+                ""sort"": [{
+                    ""@timestamp"": {
+                        ""order"": ""desc""
+                        }
+                    }],   
+                ""size"": 100
                 }";
             try
             {
@@ -56,6 +62,27 @@ namespace BackendAPI.Controllers
                 return BadRequest();
             }
         }
+        [HttpGet("user/{userId}")]
+        public IActionResult GetByUserId(string userId)
+        {
+            string query = @"{
+                ""query"" : {
+                ""match"": {
+                    ""UserId"" : """ + userId + @"""}
+                }
+                }";
+            try
+            {
+                using JsonDocument doc = JsonDocument.Parse(query);
+                var result = ElasticSearch.getDataAsync(doc, "post");
+                JObject jObject = JObject.Parse(result.Result.ToString());
+                return Ok(jObject["hits"]["hits"].ToString());
+            }
+            catch
+            {
+                return BadRequest();
+            }
+        }
         [HttpGet("search")]
         public IActionResult Search(string searchText)
         {
@@ -63,7 +90,7 @@ namespace BackendAPI.Controllers
                 ""query"" : {
                 ""multi_match"": {
                     ""query"":"""+ searchText + @""", 
-                     ""fields"": [""Title"", ""Content.SubContent""]
+                     ""fields"": [""Title^3"", ""Content.SubTitile^2"", ""Content.SubContent^1""]
                 }
                 }
                 }";
@@ -82,60 +109,10 @@ namespace BackendAPI.Controllers
         [HttpPost]
         public IActionResult Create(PostVM postVM)
         {
-            //Lay ten nguoi dang bai
-            //string query = @"{
-            //    ""query"" : {
-            //    ""match"": {
-            //        ""_id"" : """ + userId + @"""}
-            //    }
-            //    }";
             try
             {
-                //using JsonDocument doc_user = JsonDocument.Parse(query);
-                //var result_user = ElasticSearch.getDataAsync(doc_user, "user");
-                //JObject jObject = JObject.Parse(result_user.Result.ToString());
-                //List<User> all_user = new List<User>();
-                //JArray userList = JArray.Parse(jObject["hits"]["hits"].ToString());
-                //string userName = userList[0]["_source"]["userName"].ToString();//
-                //tao bai post moi
                 var json = JsonSerializer.Serialize(postVM);
                 using JsonDocument doc = JsonDocument.Parse(json);
-
-
-
-
-
-                //string postQuery = @"{ ""id"" : """ + id + @""",
-                //                ""user_id"" : """ + userId + @""",
-                //                ""title"" : """ + title + @""",
-                //                ""content"" : [";
-
-                //int j;
-
-                //postQuery += @"{
-                //            ""subtitle"" : """ + "" + @""",
-                //            ""subcontent"" : """ + content + @"""
-                //    }]}";
-
-                //string postQuery = @"{ ""id"" : """ + id + @""",
-                //                ""user_id"" : """ + userId + @""",
-                //                ""title"" : """ + postVM.Title + @""",
-                //                ""content"" : [";
-
-                //int j;
-                //for (j = 0; j < postVM.Contents.Count - 1; j++)
-                //{
-                //    postQuery += @"{
-                //             ""subtitle"" : """ + postVM.Contents[j].SubTitle + @""",
-                //             ""subcontent"" : """ + postVM.Contents[j].SubContent + @"""
-                //     },";
-                //}
-                //postQuery += @"{
-                //             ""subtitle"" : """ + postVM.Contents[j].SubTitle + @""",
-                //             ""subcontent"" : """ + postVM.Contents[j].SubContent + @"""
-                //     }]}";
-
-
                 var result = ElasticSearch.postDataAsync(doc, "post");
                 return Ok("success");
             }
@@ -191,7 +168,7 @@ namespace BackendAPI.Controllers
             string query = @"{
                 ""query"" : {
                 ""match"": {
-                    ""id"" : """ + id + @"""}
+                    ""_id"" : """ + id + @"""}
                 }
                 }";
             try

@@ -17,6 +17,20 @@ namespace LearningBlog.Controllers
         {
             return View();
         }
+        public IActionResult Account()
+        {
+            //lay thong tin dang nhap
+            var session = HttpContext.Session;          // Lấy ISession
+            string key = "infor_access";
+            string json = session.GetString(key);
+            if (json == null)
+            {
+                return RedirectToAction("Login", "User");
+            }
+            User loginUser = JsonConvert.DeserializeObject<User>(json);
+            return View(loginUser);
+            
+        }
         [HttpGet]
         public IActionResult Login()
         {
@@ -38,6 +52,7 @@ namespace LearningBlog.Controllers
                     UserName = i["_source"]["UserName"].ToString(),
                     Password = i["_source"]["Password"].ToString(),
                     FullName = i["_source"]["FullName"].ToString(),
+                    Email = "elasticsearch@gmail.com"
                 });
             }
             bool check = false;

@@ -1,0 +1,50 @@
+﻿@model IEnumerable<LearningBlog.Models.Post>
+
+@{
+    ViewData["Title"] = "GetByUser";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<header class="masthead" style="padding-top: 0px; padding-bottom:150px; background: url('/assets/assets/img/home-bg.jpg') no-repeat top center/cover ">
+</header>
+
+<p>
+    <a asp-action="Post">Thêm Mới</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Mã bài viết
+            </th>
+            <th>
+                Tiêu đề
+            </th>
+            <th>
+                Ngày đăng
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Id)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Title)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Date)
+            </td>
+
+            <td>
+                @Html.ActionLink("Sửa", "Edit", new { /* id=item.PrimaryKey */ }) |
+                @Html.ActionLink("Xem", "PostDetail", new {id = item.Id}) |
+                @Html.ActionLink("Xoá", "Delete", new { id = item.Id })
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
